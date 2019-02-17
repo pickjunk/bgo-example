@@ -1,0 +1,8 @@
+# port: 8080
+
+# sentry: "your-sentry-dsn"
+
+mysql:
+  dsn: "root:123456@/example?charset=utf8mb4"
+  maxIdleConns: 5
+  maxOpenConns: 10

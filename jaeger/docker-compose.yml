@@ -1,0 +1,63 @@
+# fork from https://github.com/p404/jaeger-elasticsearch-compose/blob/master/docker-compose.yml
+
+version: "3"
+volumes:
+  els-data:
+  els-log:
+services:
+  els:
+    image: elasticsearch:6.5.4
+    restart: always
+    environment:
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    expose:
+      - "9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - els-data:/usr/share/elasticsearch/data
+      - els-log:/usr/share/elasticsearch/logs
+      - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+
+  # kibana:
+  #   image: kibana:6.6.0
+  #   ports:
+  #     - "5601:5601"
+  #   environment:
+  #     ELASTICSEARCH_URL: http://els:9200
+  #   depends_on:
+  #     - els
+
+  jaeger-agent:
+    image: jaegertracing/jaeger-agent:latest
+    restart: always
+    ports:
+      # - "5775:5775/udp" # accept zipkin.thrift over compact thrift protocol
+      - "6831:6831/udp" # accept jaeger.thrift over compact thrift protocol
+      - "6832:6832/udp" # accept jaeger.thrift over binary thrift protocol
+      - "5778:5778" # serve configs, sampling strategies
+    command:
+      ["--reporter.tchannel.host-port=jaeger-collector:14267"]
+  jaeger-collector:
+    image: jaegertracing/jaeger-collector:latest
+    restart: always
+    expose:
+      - "14267" # used by jaeger-agent to send spans in jaeger.thrift format
+      # - "14268" # can accept spans directly from clients in jaeger.thrift format over binary thrift protocol
+      # - "9411" # can accept Zipkin spans in JSON or Thrift (disabled by default)
+      # - "14269" # Health check at /
+    environment:
+      SPAN_STORAGE_TYPE: elasticsearch
+      ES_SERVER_URLS: http://els:9200
+  jaeger-query:
+    image: jaegertracing/jaeger-query:latest
+    restart: always
+    ports:
+      - "16686:16686" # /api/* endpoints and Jaeger UI at /
+      # - "16687:16687" # Health check at /
+    environment:
+      SPAN_STORAGE_TYPE: elasticsearch
+      ES_SERVER_URLS: http://els:9200
