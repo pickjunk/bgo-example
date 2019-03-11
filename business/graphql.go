@@ -1,4 +1,4 @@
-package graphql
+package business
 
 import (
 	bgo "github.com/pickjunk/bgo"
@@ -6,13 +6,14 @@ import (
 
 type resolver struct{}
 
-// Graphql instance
+// Graphql endpoint
 var Graphql = bgo.NewGraphql(&resolver{})
 
 func init() {
 	Graphql.MergeSchema(`
 	schema {
 		query: Query
+		mutation: Mutation
 	}
 	`)
 }

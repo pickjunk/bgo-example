@@ -3,6 +3,14 @@
 # sentry: "your-sentry-dsn"
 
 mysql:
-  dsn: "root:123456@/example?charset=utf8mb4"
+  dsn: "root:123456@/bgo?charset=utf8mb4"
   maxIdleConns: 5
   maxOpenConns: 10
+
+migrations: migrations/
+root:
+  table: "admin"
+  name: "root"
+  passwd: "123456"
+  ctime: now
+  mtime: now
