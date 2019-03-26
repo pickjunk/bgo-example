@@ -52,7 +52,8 @@ func Admin(ctx context.Context, next bgo.Handle) {
 	ctx = context.WithValue(ctx, bgo.CtxKey("id"), claims["id"])
 
 	// less than 10 minutes to expire, refresh token
-	if time.Now().After(time.Unix(claims["exp"].(int64), 0).Add(-10 * time.Minute)) {
+	exp := claims["exp"].(float64)
+	if time.Now().After(time.Unix(int64(exp), 0).Add(-10 * time.Minute)) {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"id":   claims["id"],
 			"name": claims["name"],
@@ -60,7 +61,7 @@ func Admin(ctx context.Context, next bgo.Handle) {
 		})
 
 		secret := bgo.Config["secret"].(string)
-		tokenStr, err := token.SignedString(secret)
+		tokenStr, err := token.SignedString([]byte(secret))
 		if err != nil {
 			bgo.Log.Panic(err)
 		}

@@ -17,10 +17,6 @@ var gate = bgo.NewGraphql(&resolver{})
 
 func init() {
 	gate.MergeSchema(`
-	schema {
-		mutation: Mutation
-	}
-
 	type Mutation {
 		login(name: String!, passwd: String!): Boolean!
 	}
@@ -33,7 +29,7 @@ func (r *resolver) Login(
 		Name   string
 		Passwd string
 	},
-) (bool, error) {
+) bool {
 	db := ctx.Value(bgo.CtxKey("dbr")).(*dbr.Session)
 
 	var admin struct {
@@ -42,15 +38,16 @@ func (r *resolver) Login(
 		Passwd string
 	}
 	err := db.Select("*").
+		From("admin").
 		Where(dbr.Eq("name", args.Name)).
 		LoadOne(&admin)
 	if err != nil {
-		return false, bgo.Error(100, "name or password error")
+		bgo.Throw(100, "name or password error")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(args.Passwd), []byte(admin.Passwd))
+	err = bcrypt.CompareHashAndPassword([]byte(admin.Passwd), []byte(args.Passwd))
 	if err != nil {
-		return false, bgo.Error(100, "name or password error")
+		bgo.Throw(100, "name or password error")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -60,7 +57,7 @@ func (r *resolver) Login(
 	})
 
 	secret := bgo.Config["secret"].(string)
-	tokenStr, err := token.SignedString(secret)
+	tokenStr, err := token.SignedString([]byte(secret))
 	if err != nil {
 		bgo.Log.Panic(err)
 	}
@@ -69,7 +66,7 @@ func (r *resolver) Login(
 	h := ctx.Value(bgo.CtxKey("http")).(*bgo.HTTP)
 	http.SetCookie(h.Response, &cookie)
 
-	return true, nil
+	return true
 }
 
 // MountGate endpoint

@@ -14,3 +14,8 @@ root:
   passwd: "123456"
   ctime: now
   mtime: now
+
+# 512bit is secure
+# RFC 7518 states that a key of the same size as the hash output (for instance, 256 bits for "HS256")
+# or larger MUST be used with the HS256 algorithm.
+secret: de5889765e2b7b23f6a0a6159633494a5f23b874f3d17723ce79f1d69379b7bc

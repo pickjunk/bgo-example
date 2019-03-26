@@ -30,7 +30,7 @@ func init() {
 	}
 
 	type AdminList {
-		list: [Admin!]!
+		data: [Admin!]!
 		total: Int!
 	}
 
@@ -110,19 +110,20 @@ func (r *resolver) Admins(
 	return &lr
 }
 
-// List resolver
-func (r *AdminListResolver) List(ctx context.Context) []AdminResolver {
+var size uint64 = 20
+
+// Data resolver
+func (r *AdminListResolver) Data(ctx context.Context) []*AdminResolver {
 	db := ctx.Value(b.CtxKey("dbr")).(*dbr.Session)
 
-	var l []AdminResolver
+	var l []*AdminResolver
 
-	var size int32 = 20
 	builder := db.Select("*").
 		From("admin").
 		Where("dtime IS NULL").
 		OrderBy("mtime DESC").
-		Offset(uint64((r.page - 1) * size)).
-		Limit(uint64(size))
+		Offset((uint64(r.page) - 1) * size).
+		Limit(size)
 
 	if r.search != "" {
 		builder.Where(dbr.Or(
@@ -137,7 +138,7 @@ func (r *AdminListResolver) List(ctx context.Context) []AdminResolver {
 	}
 
 	for _, admin := range admins {
-		l = append(l, AdminResolver{admin})
+		l = append(l, &AdminResolver{admin})
 	}
 
 	return l
@@ -234,7 +235,7 @@ func (r *AdminResolver) Btime() *string {
 	return nil
 }
 
-// AdminNameCheck check whether the name is duplicated
+// AdminNameCheck resolver
 func (r *resolver) AdminNameCheck(
 	ctx context.Context,
 	args struct {
@@ -266,7 +267,7 @@ func (r *resolver) AdminNameCheck(
 	return true
 }
 
-// UpsertAdmin to upsert admin
+// UpsertAdmin resolver
 func (r *resolver) UpsertAdmin(ctx context.Context, args struct {
 	ID   graphql.ID
 	Data AdminInput
@@ -346,7 +347,7 @@ func (r *resolver) UpsertAdmin(ctx context.Context, args struct {
 	return true
 }
 
-// BanAdmins ban admins by a list of id
+// BanAdmins resolver
 func (r *resolver) BanAdmins(ctx context.Context, args struct {
 	Ids    []graphql.ID
 	Status bool
@@ -383,7 +384,7 @@ func (r *resolver) BanAdmins(ctx context.Context, args struct {
 	return true
 }
 
-// DeleteAdmins delete admins by a list of id
+// DeleteAdmins resolver
 func (r *resolver) DeleteAdmins(ctx context.Context, args struct {
 	Ids []graphql.ID
 }) bool {
@@ -410,7 +411,7 @@ func (r *resolver) DeleteAdmins(ctx context.Context, args struct {
 	return true
 }
 
-// Profile get yourself's profile
+// Profile resolver
 func (r *resolver) Profile(ctx context.Context) *AdminResolver {
 	id := ctx.Value(b.CtxKey("id")).(string)
 	db := ctx.Value(b.CtxKey("dbr")).(*dbr.Session)
@@ -428,7 +429,7 @@ func (r *resolver) Profile(ctx context.Context) *AdminResolver {
 	return &AdminResolver{&admin}
 }
 
-// UpdateProfile update yourself's profile
+// UpdateProfile resolver
 func (r *resolver) UpdateProfile(ctx context.Context, args struct {
 	Data *AdminInput
 }) bool {
