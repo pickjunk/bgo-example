@@ -10,6 +10,8 @@ import (
 func main() {
 	r := bgo.New()
 
+	r.Swagger([]byte{})
+
 	closer := bgo.Jaeger(&config.Configuration{
 		ServiceName: "bgo-example",
 		Sampler: &config.SamplerConfig{
