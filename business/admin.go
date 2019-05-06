@@ -3,6 +3,7 @@ package business
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -11,7 +12,6 @@ import (
 	dbr "github.com/gocraft/dbr"
 	graphql "github.com/graph-gophers/graphql-go"
 	b "github.com/pickjunk/bgo"
-	bt "github.com/pickjunk/bgo/time"
 )
 
 func init() {
@@ -55,10 +55,10 @@ type Admin struct {
 	ID     *graphql.ID
 	Name   *string
 	Passwd *string
-	Ctime  dbr.NullTime
-	Mtime  dbr.NullTime
-	Ltime  dbr.NullTime
-	Btime  dbr.NullTime
+	Ctime  uint64
+	Mtime  uint64
+	Ltime  uint64
+	Btime  uint64
 }
 
 // AdminInput struct
@@ -205,34 +205,26 @@ func (r *AdminResolver) Name() *string {
 
 // Ctime field
 func (r *AdminResolver) Ctime() *string {
-	if r.admin.Ctime.Valid {
-		return bt.DateTime(&r.admin.Ctime.Time)
-	}
-	return nil
+	result := strconv.FormatUint(r.admin.Ctime, 10)
+	return &result
 }
 
 // Mtime field
 func (r *AdminResolver) Mtime() *string {
-	if r.admin.Mtime.Valid {
-		return bt.DateTime(&r.admin.Mtime.Time)
-	}
-	return nil
+	result := strconv.FormatUint(r.admin.Mtime, 10)
+	return &result
 }
 
 // Ltime field
 func (r *AdminResolver) Ltime() *string {
-	if r.admin.Ltime.Valid {
-		return bt.DateTime(&r.admin.Ltime.Time)
-	}
-	return nil
+	result := strconv.FormatUint(r.admin.Ltime, 10)
+	return &result
 }
 
 // Btime field
 func (r *AdminResolver) Btime() *string {
-	if r.admin.Btime.Valid {
-		return bt.DateTime(&r.admin.Btime.Time)
-	}
-	return nil
+	result := strconv.FormatUint(r.admin.Btime, 10)
+	return &result
 }
 
 // AdminNameCheck resolver
@@ -281,8 +273,7 @@ func (r *resolver) UpsertAdmin(ctx context.Context, args struct {
 	}
 
 	db := ctx.Value(b.CtxKey("dbr")).(*dbr.Session)
-	nowTime := time.Now()
-	now := bt.DateTime(&nowTime)
+	now := time.Now().Unix()
 
 	id := string(args.ID)
 	if id == "0" {
@@ -361,8 +352,7 @@ func (r *resolver) BanAdmins(ctx context.Context, args struct {
 	}
 
 	db := ctx.Value(b.CtxKey("dbr")).(*dbr.Session)
-	nowTime := time.Now()
-	now := bt.DateTime(&nowTime)
+	now := time.Now().Unix()
 
 	var err error
 	if args.Status == true {
@@ -397,8 +387,7 @@ func (r *resolver) DeleteAdmins(ctx context.Context, args struct {
 	}
 
 	db := ctx.Value(b.CtxKey("dbr")).(*dbr.Session)
-	nowTime := time.Now()
-	now := bt.DateTime(&nowTime)
+	now := time.Now().Unix()
 
 	_, err := db.Update("admin").
 		Where("id IN ?", args.Ids).
@@ -435,8 +424,7 @@ func (r *resolver) UpdateProfile(ctx context.Context, args struct {
 }) bool {
 	id := ctx.Value(b.CtxKey("id")).(string)
 	db := ctx.Value(b.CtxKey("dbr")).(*dbr.Session)
-	nowTime := time.Now()
-	now := bt.DateTime(&nowTime)
+	now := time.Now().Unix()
 
 	var admin Admin
 	err := db.Select("*").

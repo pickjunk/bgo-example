@@ -2,8 +2,8 @@ CREATE TABLE `bgo`.`admin` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `passwd` VARCHAR(60) NOT NULL,
-  `ltime` DATETIME NULL,
-  `ctime` DATETIME NOT NULL,
-  `mtime` DATETIME NOT NULL,
-  `dtime` DATETIME NULL,
+  `ctime` BIGINT NOT NULL,
+  `mtime` BIGINT NOT NULL,
+  `dtime` BIGINT NOT NULL DEFAULT 0,
+  `ltime` BIGINT NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`));
